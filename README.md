@@ -1,0 +1,2 @@
+# mfSpent
+microfrontend of SpentApp
