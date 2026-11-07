@@ -475,7 +475,7 @@ export default function Overview() {
         <Card className="p-4 md:p-6">
           <h3 className="text-base md:text-lg mb-2">Real-time notifications</h3>
           <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
-            Protect your accounts & finances with FinanceFlow's email & alerts notifications of all your financial transactions.
+            Protect your accounts & finances with SpentApp's email & alerts notifications of all your financial transactions.
           </p>
           <Button className="w-full text-xs md:text-sm" onClick={() => setNotificationDialogOpen(true)}>
             Set up Notifications

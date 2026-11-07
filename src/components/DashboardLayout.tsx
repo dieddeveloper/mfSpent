@@ -34,7 +34,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserEmail(user.email || "");
-        setIsDemoUser(user.email === "demo@financeflow.app");
+        setIsDemoUser(user.email === "demo@SpentApp.app");
       }
     };
     getUser();
@@ -109,7 +109,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         title: "Signed out successfully",
         description: isDemoUser 
           ? "Demo data has been reset. Next time you log in, you'll start fresh." 
-          : "You have been logged out of FinanceFlow.",
+          : "You have been logged out of SpentApp.",
       });
     }
   };

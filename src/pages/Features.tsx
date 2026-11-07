@@ -124,7 +124,7 @@ const Features = () => {
       <div>
         <h1 className="text-3xl tracking-tight">Features</h1>
         <p className="text-muted-foreground">
-          Discover all the powerful features that make FinanceFlow the best choice for your financial management
+          Discover all the powerful features that make SpentApp the best choice for your financial management
         </p>
       </div>
 

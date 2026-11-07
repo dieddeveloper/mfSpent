@@ -98,7 +98,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     } else {
       toast({
         title: "Account created!",
-        description: "Welcome to FinanceFlow! Your account has been created successfully.",
+        description: "Welcome to SpentApp! Your account has been created successfully.",
       });
     }
 
@@ -108,7 +108,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
   const handleDemoLogin = async () => {
     setAuthLoading(true);
     
-    const demoEmail = "demo@financeflow.app";
+    const demoEmail = "demo@spentapp.app";
     const demoPassword = "demo123456";
 
     try {
@@ -160,7 +160,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
 
       toast({
         title: "Welcome to the Demo!",
-        description: "You're now exploring FinanceFlow with sample data.",
+        description: "You're now exploring SpentApp with sample data.",
       });
     } catch (error: any) {
       toast({
@@ -195,7 +195,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
               <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mx-auto mb-4">
                 <BarChart3 className="w-7 h-7 text-primary-foreground" />
               </div>
-              <h1 className="text-2xl">Welcome to FinanceFlow</h1>
+              <h1 className="text-2xl">Welcome to SpentApp</h1>
               <p className="text-muted-foreground mt-2">
                 {isSignUp ? "Create your account to get started" : "Sign in to your dashboard"}
               </p>

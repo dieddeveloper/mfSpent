@@ -77,7 +77,7 @@ export function FinancialSidebar() {
             <LayoutDashboard className="w-5 h-5 text-primary-foreground" />
           </div>
           {!collapsed && <div>
-              <h2 className="text-sidebar-foreground">FinanceFlow</h2>
+              <h2 className="text-sidebar-foreground">SpentApp</h2>
               <p className="text-xs text-muted-foreground">Financial Dashboard</p>
             </div>}
         </div>
