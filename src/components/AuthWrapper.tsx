@@ -11,7 +11,7 @@ import { BarChart3, Mail, Lock, User as UserIcon } from "lucide-react";
 interface AuthWrapperProps {
   children: React.ReactNode;
 }
-
+//TODO MODIFICAR LOGIN PARA ACCEDER DESDE BACKEND, CREAR UN ENDPOINT QUE RECIBA EL TOKEN Y DEVUELVA EL USUARIO VER REFERENCIA EN REPO
 export function AuthWrapper({ children }: AuthWrapperProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,9 +26,9 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
     });
+    setUser(session?.user ?? null);
+    setLoading(false);
 
     // Listen for auth changes
     const {
