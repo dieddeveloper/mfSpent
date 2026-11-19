@@ -48,7 +48,11 @@ const connectItems = [{
   title: "HubSpot",
   icon: Settings
 }];
-export function FinancialSidebar() {
+interface FinancialSidebarProps {
+  userDisplayName: string;
+}
+
+export function FinancialSidebar({ userDisplayName }: FinancialSidebarProps) {
   const {
     state
   } = useSidebar();
@@ -73,12 +77,17 @@ export function FinancialSidebar() {
   return <Sidebar className={`${collapsed ? "w-16" : "w-64"} border-r border-sidebar-border bg-sidebar transition-all duration-300`}>
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+          <div
+            className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center"
+            title={userDisplayName || "Financial Dashboard"}
+          >
             <LayoutDashboard className="w-5 h-5 text-primary-foreground" />
           </div>
           {!collapsed && <div>
               <h2 className="text-sidebar-foreground">SpentApp</h2>
-              <p className="text-xs text-muted-foreground">Financial Dashboard</p>
+              <p className="text-sm font-semibold text-primary bg-primary/10 rounded-md px-2 py-0.5 truncate max-w-40">
+                {userDisplayName || "Financial Dashboard"}
+              </p>
             </div>}
         </div>
       </div>

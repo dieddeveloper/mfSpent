@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { GetCurrentUser } from "@/services/user.service";
 
 export interface ScheduledReport {
   id: string;
@@ -31,7 +32,7 @@ export const useScheduledReports = () => {
   const { data: scheduledReports, isLoading } = useQuery({
     queryKey: ["scheduled-reports"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await GetCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
@@ -46,7 +47,7 @@ export const useScheduledReports = () => {
 
   const createScheduledReport = useMutation({
     mutationFn: async (input: ScheduledReportInput) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await GetCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { data: profile } = await supabase

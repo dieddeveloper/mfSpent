@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { GetCurrentUser } from "@/services/user.service";
 
 export interface AccountingSettings {
   id: string;
@@ -33,7 +34,7 @@ export function useUpdateAccountingBasis() {
   return useMutation({
     mutationFn: async (basis: 'accrual' | 'cash') => {
       // First get the user's company_id from their profile
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await GetCurrentUser();
       if (!user) throw new Error('User not authenticated');
 
       const { data: profile } = await supabase

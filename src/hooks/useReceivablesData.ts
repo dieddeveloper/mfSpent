@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "./useFinancialData";
+import { GetCurrentUser } from "@/services/user.service";
 
 export interface ARAgingBucket {
   bucket: string;
@@ -179,7 +180,7 @@ export function useRecentActivity() {
   return useQuery({
     queryKey: ['recent-activity'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await GetCurrentUser();
       if (!user) throw new Error('Not authenticated');
 
       const { data: profile } = await supabase

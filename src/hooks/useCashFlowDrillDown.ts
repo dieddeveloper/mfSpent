@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format, startOfMonth, endOfMonth, parseISO } from "date-fns";
+import { GetCurrentUser } from "@/services/user.service";
 
 export interface CashFlowDrillDownData {
   period: string;
@@ -27,7 +28,7 @@ export function useCashFlowDrillDown() {
     queryFn: async (): Promise<CashFlowDrillDownData | null> => {
       if (!drillDownRequest) return null;
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await GetCurrentUser();
       if (!user) return null;
 
       const { data: profile } = await supabase

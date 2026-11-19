@@ -6,6 +6,7 @@ import { RefreshCw, Database, CheckCircle, AlertCircle, Clock } from "lucide-rea
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { GetCurrentUser } from "@/services/user.service";
 
 interface ETLJob {
   name: string;
@@ -61,11 +62,12 @@ export const ETLManager = () => {
 
     try {
       // Get company_id from user profile
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await GetCurrentUser();
+      if (!user) throw new Error("Not authenticated");
       const { data: profile } = await supabase
         .from('profiles')
         .select('company_id')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .single();
 
       if (!profile?.company_id) {

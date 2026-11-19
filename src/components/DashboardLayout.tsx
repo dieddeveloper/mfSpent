@@ -8,11 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Search, Fuel, Wallet, LogOut } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState, useRef } from "react";
 import { useGlobalSearch, SearchResult } from "@/hooks/useGlobalSearch";
 import { useNavigate } from "react-router-dom";
+import { CheckSession } from "@/services/user.service";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -21,7 +21,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [userEmail, setUserEmail] = useState<string>("");
+  const [userDisplayName, setUserDisplayName] = useState("");
   const [isDemoUser, setIsDemoUser] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
@@ -31,10 +31,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserEmail(user.email || "");
-        setIsDemoUser(user.email === "demo@SpentApp.app");
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const response = await CheckSession(token);
+        if (response.success) {
+          setUserDisplayName(response.data.name?.trim() || response.data.email || "");
+          setIsDemoUser(response.data.email === "demo@spentapp.app");
+        }
+      } catch {
+        setUserDisplayName("");
       }
     };
     getUser();
@@ -85,39 +92,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const handleSignOut = async () => {
-    // Reset demo data if this is the demo user
-    if (isDemoUser) {
-      try {
-        const { error: resetError } = await supabase.rpc('reset_demo_data');
-        if (resetError) {
-          console.error('Error resetting demo data:', resetError);
-        }
-      } catch (error) {
-        console.error('Error resetting demo data:', error);
-      }
-    }
+    // TODO(supabase-removal): replace or remove the demo-data reset when its backend endpoint exists.
+    // if (isDemoUser) {
+    //   const { error } = await supabase.rpc("reset_demo_data");
+    //   if (error) console.error("Error resetting demo data:", error);
+    // }
 
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Signed out successfully",
-        description: isDemoUser 
-          ? "Demo data has been reset. Next time you log in, you'll start fresh." 
-          : "You have been logged out of SpentApp.",
-      });
-    }
+    localStorage.removeItem("token");
+    window.dispatchEvent(new Event("spent-auth-changed"));
+    toast({
+      title: "Signed out successfully",
+      description: isDemoUser ? "You have exited the demo." : "You have been logged out of SpentApp.",
+    });
   };
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
-        <FinancialSidebar />
+        <FinancialSidebar userDisplayName={userDisplayName} />
         
         <div className="flex-1 flex flex-col overflow-visible">
           {/* Header */}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth } from "date-fns";
+import { GetCurrentUser } from "@/services/user.service";
 
 export interface ExpenseDrillDownData {
   filterType: "category" | "period";
@@ -28,9 +29,7 @@ export function useExpenseDrillDown(dateRange?: { from?: Date; to?: Date }) {
     queryFn: async () => {
       if (!drillDownRequest) return null;
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await GetCurrentUser();
       if (!user) return null;
 
       const { data: profile } = await supabase

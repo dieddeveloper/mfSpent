@@ -1,76 +1,82 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { BarChart3, Mail, Lock, User as UserIcon } from "lucide-react";
+import { CheckSession, LoginUser, RegisterUser } from "@/services/user.service";
+import { AuthUser, UserRole } from "@/models/spentResponse.model";
 
 interface AuthWrapperProps {
   children: React.ReactNode;
 }
-//TODO MODIFICAR LOGIN PARA ACCEDER DESDE BACKEND, CREAR UN ENDPOINT QUE RECIBA EL TOKEN Y DEVUELVA EL USUARIO VER REFERENCIA EN REPO
+
 export function AuthWrapper({ children }: AuthWrapperProps) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [documentNumber, setDocumentNumber] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-    });
-    setUser(session?.user ?? null);
-    setLoading(false);
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-      
-      // Clear form fields on logout for security
-      if (!session?.user) {
-        setEmail("");
-        setPassword("");
-        setFirstName("");
-        setLastName("");
+    const restoreSession = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setUser(null);
+        setLoading(false);
+        return;
       }
-    });
 
-    return () => subscription.unsubscribe();
+      try {
+        const response = await CheckSession(token);
+        
+        setUser(response.success ? response.data : null);
+      } catch {
+        localStorage.removeItem("token");
+        setUser(null);
+      }
+      setLoading(false);
+    };
+
+    const handleAuthChanged = () => {
+      void restoreSession();
+    };
+
+    void restoreSession();
+    window.addEventListener("spent-auth-changed", handleAuthChanged);
+
+    return () => window.removeEventListener("spent-auth-changed", handleAuthChanged);
   }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      toast({
-        title: "Error signing in",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+    try {
+      const response = await LoginUser({ email, password });
+      localStorage.setItem("token", response.data.token);
+      const sessionResponse = await CheckSession(response.data.token);
+      if (!sessionResponse.success || !sessionResponse.data) {
+        throw new Error(sessionResponse.message || "Unable to restore the authenticated user.");
+      }
+      setUser(sessionResponse.data);
       toast({
         title: "Welcome back!",
         description: "You've been successfully signed in.",
       });
+    } catch (error) {
+      toast({
+        title: "Error signing in",
+        description: error instanceof Error ? error.message : "Unable to sign in.",
+        variant: "destructive",
+      });
     }
-
     setAuthLoading(false);
   };
 
@@ -78,30 +84,33 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     e.preventDefault();
     setAuthLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-        },
-      },
-    });
-
-    if (error) {
-      toast({
-        title: "Error signing up",
-        description: error.message,
-        variant: "destructive",
+    try {
+      const response = await RegisterUser({
+        email,
+        password,
+        name: `${firstName} ${lastName}`.trim(),
+        documentNumber,
+        roleId: UserRole.User,
       });
-    } else {
+
+      const loginResponse = await LoginUser({ email, password });
+      localStorage.setItem("token", loginResponse.data.token);
+      const sessionResponse = await CheckSession(loginResponse.data.token);
+      if (!sessionResponse.success || !sessionResponse.data) {
+        throw new Error(sessionResponse.message || "Unable to restore the authenticated user.");
+      }
+      setUser(sessionResponse.data);
       toast({
         title: "Account created!",
         description: "Welcome to SpentApp! Your account has been created successfully.",
       });
+    } catch (error) {
+      toast({
+        title: "Error signing up",
+        description: error instanceof Error ? error.message : "Unable to create account.",
+        variant: "destructive",
+      });
     }
-
     setAuthLoading(false);
   };
 
@@ -112,60 +121,21 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     const demoPassword = "demo123456";
 
     try {
-      // First try to sign in with existing demo account
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: demoEmail,
-        password: demoPassword,
-      });
-
-      if (signInError) {
-        // If demo account doesn't exist, create it
-        const { error: signUpError } = await supabase.auth.signUp({
-          email: demoEmail,
-          password: demoPassword,
-          options: {
-            data: {
-              first_name: "Demo",
-              last_name: "User",
-            },
-          },
-        });
-
-        if (signUpError) {
-          throw signUpError;
-        }
-
-        // After creating, sign in
-        const { error: signInAfterSignUpError } = await supabase.auth.signInWithPassword({
-          email: demoEmail,
-          password: demoPassword,
-        });
-
-        if (signInAfterSignUpError) {
-          throw signInAfterSignUpError;
-        }
+      const response = await LoginUser({ email: demoEmail, password: demoPassword });
+      localStorage.setItem("token", response.data.token);
+      const sessionResponse = await CheckSession(response.data.token);
+      if (!sessionResponse.success || !sessionResponse.data) {
+        throw new Error(sessionResponse.message || "Unable to restore the authenticated user.");
       }
-
-      // Ensure demo user profile is properly configured
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { error: setupError } = await supabase.rpc('setup_demo_user_profile', {
-          demo_user_id: user.id
-        });
-
-        if (setupError) {
-          console.error('Error setting up demo profile:', setupError);
-        }
-      }
-
+      setUser(sessionResponse.data);
       toast({
         title: "Welcome to the Demo!",
         description: "You're now exploring SpentApp with sample data.",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Demo login failed",
-        description: error.message || "Unable to access demo account. Please try again.",
+        description: error instanceof Error ? error.message : "Unable to access demo account. Please try again.",
         variant: "destructive",
       });
     }
@@ -245,6 +215,25 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
                   />
                 </div>
               </div>
+
+              {isSignUp && (
+                <div>
+                  <Label htmlFor="documentNumber">Document Number</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="documentNumber"
+                      type="text"
+                      value={documentNumber}
+                      onChange={(e) => setDocumentNumber(e.target.value)}
+                      required
+                      placeholder="123456789"
+                      className="pl-10"
+                      autoComplete="off"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="password">Password</Label>

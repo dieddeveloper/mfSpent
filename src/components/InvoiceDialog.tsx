@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { GetCurrentUser } from "@/services/user.service";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -85,7 +86,7 @@ export function InvoiceDialog({ open, onOpenChange }: InvoiceDialogProps) {
   const onSubmit = async (data: InvoiceFormData) => {
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await GetCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { data: profile } = await supabase

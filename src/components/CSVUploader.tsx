@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Progress } from "@/components/ui/progress";
 import { useQueryClient } from "@tanstack/react-query";
+import { GetCurrentUser } from "@/services/user.service";
 
 interface CSVUploaderProps {
   open: boolean;
@@ -104,7 +105,7 @@ export function CSVUploader({ open, onOpenChange }: CSVUploaderProps) {
     setProgress(25);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await GetCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       // Upload file to storage
