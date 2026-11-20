@@ -1,3 +1,5 @@
+import { NoveltyType } from "./spentForm.model";
+
 export interface SpentResponse<T = unknown> {
   statusCode: number;
   message: string;
@@ -7,12 +9,15 @@ export interface SpentResponse<T = unknown> {
 }
 
 export interface AuthUser {
-  id: string;
+  id?: string;
+  userId?: number;
   email: string;
   name?: string;
   roleId?: number;
   documentNumber?: string;
 }
+
+export type CurrentUser = AuthUser & { id: string };
 
 export interface LoginCredentials {
   email: string;
@@ -35,6 +40,20 @@ export interface RegisterCredentials {
   name?: string;
   roleId?: UserRole;
   documentNumber?: string;
+}
+
+export interface CreateNoveltyBody {
+  name: string;
+  value: number;
+  description: string;
+  noveltyType: NoveltyType;
+  top: number;
+  startDate: string;
+  endDate: string;
+  paymentMethod: string;
+  paymentInstallments: number;
+  userID: number;
+  links: string;
 }
 
 export enum UserRole {

@@ -1,6 +1,7 @@
 import { spentApi } from "@/api/spent.api";
 import {
   AuthUser,
+  CurrentUser,
   LoginCredentials,
   LoginResult,
   RegisterCredentials,
@@ -88,15 +89,18 @@ export const CheckSession = async (token: string): Promise<SpentResponse<AuthUse
   }
 };
 
-export const GetCurrentUser = async (): Promise<AuthUser | null> => {
+export const GetCurrentUser = async (): Promise<CurrentUser | null> => {
   const token = localStorage.getItem("token");
   if (!token) return null;
 
   const response = await CheckSession(token);
-  if (!response.success || !response.data?.id) {
+  const id = response.data?.id ?? (
+    response.data?.userId !== undefined ? String(response.data.userId) : undefined
+  );
+  if (!response.success || !response.data || id === undefined) {
     localStorage.removeItem("token");
     return null;
   }
 
-  return response.data;
+  return { ...response.data, id };
 };

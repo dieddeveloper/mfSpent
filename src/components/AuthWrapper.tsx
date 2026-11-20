@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { AuthUserContext } from "@/hooks/useAuthUser";
 import { BarChart3, Mail, Lock, User as UserIcon } from "lucide-react";
 import { CheckSession, LoginUser, RegisterUser } from "@/services/user.service";
 import { AuthUser, UserRole } from "@/models/spentResponse.model";
@@ -302,5 +303,5 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     );
   }
 
-  return <>{children}</>;
+  return <AuthUserContext.Provider value={user}>{children}</AuthUserContext.Provider>;
 }

@@ -22,8 +22,13 @@ import { NotificationSettingsDialog } from "@/components/NotificationSettingsDia
 import { toast } from "sonner";
 import { TimePeriodSelector, TimePeriod } from "@/components/TimePeriodSelector";
 import { usePeriodComparison } from "@/hooks/usePeriodComparison";
+import SpentPopup from "@/components/noveltyWidgets/spentPopup";
+import { NoveltyType } from "@/models/spentForm.model";
+import { useAuthUser } from "@/hooks/useAuthUser";
+
 
 export default function Overview() {
+  const authUser = useAuthUser();
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('month');
   const [filters] = useState<{ currency: string; dateRange?: { from?: Date; to?: Date } }>({ 
     currency: "USD",
@@ -33,7 +38,9 @@ export default function Overview() {
   const [contactsDialogOpen, setContactsDialogOpen] = useState(false);
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
   const { contacts, isLoading: contactsLoading } = useContacts();
-  
+  const [ openWidgetPopup, setOpenWidgetPopup] = useState(false);
+  const [ titleWidgetPopup, setTitleWidgetPopup] = useState("Feature Coming Soon!");
+  const [ noveltyTypeWidgetPopup, setNoveltyTypeWidgetPopup] = useState<NoveltyType>(NoveltyType.SPENT);
   // Drill-down state for Revenue/Profit chart
   const [drillDownParams, setDrillDownParams] = useState<{
     startDate: string;
@@ -116,7 +123,11 @@ export default function Overview() {
         </div>
       </div>;
   }
-  
+  const handleSpentWidgetClick = () => {
+    setOpenWidgetPopup(true);
+    setTitleWidgetPopup("Add Spent");
+    setNoveltyTypeWidgetPopup(NoveltyType.SPENT);
+  }
   const formatGrowth = (growth: number | undefined) => {
     if (growth === undefined || !isFinite(growth)) return "0.0%";
     const sign = growth >= 0 ? "+" : "";
@@ -278,56 +289,67 @@ export default function Overview() {
 
         {/* Widgets Section */}
         <Card className="p-4 md:p-6">
-          <h3 className="text-base md:text-lg mb-3 md:mb-4">Widgets</h3>
+          <h3 className="text-base md:text-lg mb-3 md:mb-4">Novelty Widgets</h3>
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 md:gap-6">
             <div 
               className="flex flex-col items-center gap-2 md:gap-3 cursor-pointer group"
-              onClick={() => toast.info("Buy feature coming soon!")}
+              onClick={handleSpentWidgetClick}
             >
               <div className="w-10 h-10 md:w-12 md:h-12 bg-secondary-light rounded-full flex items-center justify-center group-hover:scale-105 transition-transform">
-                <img src={WalletIcon} alt="Wallet" className="w-5 h-5 md:w-6 md:h-6" />
+                <img src={WalletIcon} alt="Spent" className="w-5 h-5 md:w-6 md:h-6" />
               </div>
-              <span className="text-xs md:text-sm font-medium text-foreground">Buy</span>
+              <span className="text-xs md:text-sm font-medium text-foreground">Spent</span>
             </div>
             <div 
               className="flex flex-col items-center gap-2 md:gap-3 cursor-pointer group"
-              onClick={() => toast.info("Sell feature coming soon!")}
-            >
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-secondary-light rounded-full flex items-center justify-center group-hover:scale-105 transition-transform">
-                <img src={SellIcon} alt="Sell" className="w-5 h-5 md:w-6 md:h-6" />
-              </div>
-              <span className="text-xs md:text-sm font-medium text-foreground">Sell</span>
-            </div>
-            <div 
-              className="flex flex-col items-center gap-2 md:gap-3 cursor-pointer group"
-              onClick={() => toast.info("Send feature coming soon!")}
-            >
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-primary-light rounded-full flex items-center justify-center group-hover:scale-105 transition-transform">
-                <img src={SendIcon} alt="Send" className="w-5 h-5 md:w-6 md:h-6" />
-              </div>
-              <span className="text-xs md:text-sm font-medium text-foreground">Send</span>
-            </div>
-            <div 
-              className="flex flex-col items-center gap-2 md:gap-3 cursor-pointer group"
-              onClick={() => toast.info("Receive feature coming soon!")}
+              onClick={() => toast.info("Income feature coming soon!")}
             >
               <div className="w-10 h-10 md:w-12 md:h-12 bg-green-100 rounded-full flex items-center justify-center group-hover:scale-105 transition-transform">
-                <img src={ReceiveIcon} alt="Receive" className="w-5 h-5 md:w-6 md:h-6" />
+                <img src={ReceiveIcon} alt="Income" className="w-5 h-5 md:w-6 md:h-6" />
               </div>
-              <span className="text-xs md:text-sm font-medium text-foreground">Receive</span>
+              <span className="text-xs md:text-sm font-medium text-foreground">Income</span>
+            </div>
+            <div 
+              className="flex flex-col items-center gap-2 md:gap-3 cursor-pointer group"
+              onClick={() => toast.info("Objective feature coming soon!")}
+            >
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-primary-light rounded-full flex items-center justify-center group-hover:scale-105 transition-transform">
+                <img src={SendIcon} alt="Objective" className="w-5 h-5 md:w-6 md:h-6" />
+              </div>
+              <span className="text-xs md:text-sm font-medium text-foreground">Objective</span>
+            </div>
+            <div 
+              className="flex flex-col items-center gap-2 md:gap-3 cursor-pointer group"
+              onClick={() => toast.info("Debt feature coming soon!")}
+            >
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-secondary-light rounded-full flex items-center justify-center group-hover:scale-105 transition-transform">
+                <img src={SellIcon} alt="Debt" className="w-5 h-5 md:w-6 md:h-6" />
+              </div>
+              <span className="text-xs md:text-sm font-medium text-foreground">Debt</span>
             </div>
             <div 
               className="flex flex-col items-center gap-2 md:gap-3 cursor-pointer group col-span-3 sm:col-span-1"
-              onClick={() => toast.info("Swap feature coming soon!")}
+              onClick={() => toast.info("Subscription feature coming soon!")}
             >
               <div className="w-10 h-10 md:w-12 md:h-12 bg-primary-light-5 rounded-full flex items-center justify-center group-hover:scale-105 transition-transform">
-                <img src={SwapIcon} alt="Swap" className="w-5 h-5 md:w-6 md:h-6" />
+                <img src={SwapIcon} alt="Subscription" className="w-5 h-5 md:w-6 md:h-6" />
               </div>
-              <span className="text-xs md:text-sm font-medium text-foreground">Swap</span>
+              <span className="text-xs md:text-sm font-medium text-foreground">Subscription</span>
             </div>
           </div>
         </Card>
 
+        {/* Novelty Widget Popup */}
+        {openWidgetPopup && authUser?.userId !== undefined && (
+          <SpentPopup
+            open={openWidgetPopup}
+            onClose={() => setOpenWidgetPopup(false)}
+            title={titleWidgetPopup}
+            size="max-w-xl"
+            noveltyType={noveltyTypeWidgetPopup}
+            userId={authUser.userId}
+          />
+        )}
         <div className="gap-4 md:gap-6">
           {/* Account Balances */}
           <Card className="p-4 md:p-6">
