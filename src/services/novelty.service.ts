@@ -8,7 +8,7 @@ export async function CreateNovelty(
   token?: string
 ): Promise<SpentResponse<number>> {
   try {
-    const { data } = await spentApi.post<SpentResponse<number>>('/Novelty/CreateNovelty', { createNoveltyData }, {
+    const { data } = await spentApi.post<SpentResponse<number>>('/Novelty/CreateNovelty',  createNoveltyData , {
       headers: { Authorization: `Bearer ${token}` }
     });
     return data;

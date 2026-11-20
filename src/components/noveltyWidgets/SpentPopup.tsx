@@ -17,7 +17,11 @@ interface SpentPopupProps {
 }
 
 const formatUtcDate = (value: FormDataEntryValue | null) => {
-  const date = String(value ?? "");
+  const date = String(
+    value == null || value === ""
+      ? new Date(Date.now()).toISOString().slice(0, 10)
+      : value
+  ).trim();
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return "";
 
@@ -34,9 +38,25 @@ const normalizeLink = (value: FormDataEntryValue | null) => {
   return /^https?:\/\//i.test(link) ? link : `https://${link}`;
 };
 
+const formatCurrencyAmount = (value: string) => {
+  if (!value) return "";
+
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "";
+
+  return new Intl.NumberFormat("es-ES", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+};
+
 const SpentPopup = ({ open, onClose, title, size, noveltyType, userId }: SpentPopupProps) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [top, setTop] = useState(0);
+  const [topInput, setTopInput] = useState("0");
+  const [isTopFocused, setIsTopFocused] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [isAmountFocused, setIsAmountFocused] = useState(false);
   const { toast } = useToast();
   const handleSaveChanges = () => {
     formRef.current?.requestSubmit();
@@ -45,18 +65,28 @@ const SpentPopup = ({ open, onClose, title, size, noveltyType, userId }: SpentPo
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    const numericAmount = Number(formData.get("value"));
+    if (!Number.isFinite(numericAmount) || numericAmount < 0) {
+      toast({
+        title: "Invalid value",
+        description: "Enter a valid non-negative amount.",
+        color: "destructive",
+      });
+      return;
+    }
+
     const spentData: SpentFormData = {
       name: String(formData.get("name") ?? ""),
-      value: Number(formData.get("value")),
+      value: numericAmount,
       description: String(formData.get("description") ?? ""),
       startDate: formatUtcDate(formData.get("startdate")),
       endDate: formatUtcDate(formData.get("enddate")),
-      paymentMethod: String(formData.get("paymentmethod") ?? ""),
-      paymentInstallments: Number(formData.get("paymentinstallments")),
-      top: top || undefined,
-      link: normalizeLink(formData.get("link")),
+      paymentMethod: Number(formData.get("paymentmethod") ?? ""),
+      paymentInstallments: Number(formData.get("paymentinstallments")) || 0,
+      top: Number(top) || 0,
+      link: normalizeLink(formData.get("link")) ?? "",
       noveltyType: noveltyType,
-      userId: userId
+      userID: userId
     };
     console.log("Spent form submitted:", spentData);
 
@@ -65,12 +95,14 @@ const SpentPopup = ({ open, onClose, title, size, noveltyType, userId }: SpentPo
       toast({
         title: "Saved",
         description: "Your changes have been saved.",
+        color: "green",
       });      
     } catch (error) {
       console.error("Error saving spent data:", error);
       toast({
         title: "Error",
         description: "Failed to save spent data.",
+        color: "red",
       });
     }
 
@@ -99,7 +131,26 @@ const SpentPopup = ({ open, onClose, title, size, noveltyType, userId }: SpentPo
 
         <div className="space-y-2">
           <Label htmlFor="spent-value">Value *</Label>
-          <Input id="spent-value" name="value" type="number" min="0" step="0.01" required />
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+              $
+            </span>
+            <Input
+              id="spent-value"
+              type="text"
+              inputMode="decimal"
+              value={isAmountFocused ? amount : formatCurrencyAmount(amount)}
+              onFocus={() => setIsAmountFocused(true)}
+              onBlur={() => setIsAmountFocused(false)}
+              onChange={(event) => {
+                const normalized = event.target.value.replace(",", ".");
+                if (/^\d*\.?\d{0,2}$/.test(normalized)) setAmount(normalized);
+              }}
+              className="pl-7"
+              required
+            />
+            <input type="hidden" name="value" value={amount} />
+          </div>
         </div>
         { noveltyType !== NoveltyType.INCOME ? (
         <div className="space-y-2 sm:col-span-2">
@@ -113,22 +164,46 @@ const SpentPopup = ({ open, onClose, title, size, noveltyType, userId }: SpentPo
               max="10000000"
               step="10000"
               value={top}
-              onChange={(event) => setTop(Number(event.target.value))}
-              className="h-2 w-full cursor-pointer accent-primary"
-            />
-            <Input
-              aria-label="Top manual"
-              type="number"
-              min="0"
-              max="10000000"
-              step="10000"
-              value={top}
               onChange={(event) => {
                 const value = Number(event.target.value);
-                setTop(Number.isNaN(value) ? 0 : Math.min(10000000, Math.max(0, value)));
+                setTop(value);
+                setTopInput(String(value));
               }}
-              className="w-32"
+              className="h-2 w-full cursor-pointer accent-primary"
             />
+            <div className="relative w-36">
+              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                $
+              </span>
+              <Input
+                aria-label="Top manual"
+                type="text"
+                inputMode="decimal"
+                value={isTopFocused ? topInput : formatCurrencyAmount(String(top))}
+                onFocus={() => {
+                  setTopInput(String(top));
+                  setIsTopFocused(true);
+                }}
+                onBlur={() => {
+                  setIsTopFocused(false);
+                  if (!topInput) {
+                    setTop(0);
+                    setTopInput("0");
+                  }
+                }}
+                onChange={(event) => {
+                  const normalized = event.target.value.replace(",", ".");
+                  if (!/^\d*\.?\d{0,2}$/.test(normalized)) return;
+
+                  setTopInput(normalized);
+                  if (normalized) {
+                    const value = Number(normalized);
+                    setTop(Math.min(10000000, Math.max(0, value)));
+                  }
+                }}
+                className="pl-7"
+              />
+            </div>
           </div>
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>0</span>

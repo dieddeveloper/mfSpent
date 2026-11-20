@@ -2,13 +2,13 @@ export interface SpentFormData {
   name: string;
   value: number;
   description: string;
-  startDate: string;
-  endDate: string;
-  paymentMethod: string;
-  paymentInstallments: number;
+  startDate?: string;
+  endDate?: string;
+  paymentMethod?: number;
+  paymentInstallments?: number;
   link?: string;
   noveltyType?: NoveltyType;
-  userId?: number;
+  userID?: number;
   top?: number;
 }
 
