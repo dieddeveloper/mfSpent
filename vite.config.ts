@@ -9,7 +9,18 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  proxy: {
+      // Requests to /api will be forwarded to your backend
+      '': {
+        target: 'https://localhost:7129', // Replace with your API URL
+        changeOrigin: false, // Set to true if your backend is on a different domain
+        secure: false, // Set to true if your backend uses HTTPS
+        ws: true, // Enable WebSocket proxying if needed
+        // Optional: remove '/api' prefix if your backend doesn't expect it
+        rewrite: (path: string) => path.replace(/^\/api/, ''),
+      },
+    },
+  plugins: [].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

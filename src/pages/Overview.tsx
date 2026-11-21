@@ -8,7 +8,7 @@ import SellIcon from "@/assets/sell-icon.svg";
 import SendIcon from "@/assets/send-icon.svg";
 import ReceiveIcon from "@/assets/receive-icon.svg";
 import SwapIcon from "@/assets/swap-icon.svg";
-import { useFinancialMetrics, useRevenueSources, useExpenseCategories, useKPIs, formatCurrency, formatPercentage } from "@/hooks/useFinancialData";
+import { useFinancialMetrics, useRevenueSources, useExpenseCategories, formatCurrency, formatPercentage } from "@/hooks/useFinancialData";
 import { useRevenueProfitData } from "@/hooks/useRevenueProfitData";
 import { useRevenueDrillDown } from "@/hooks/useRevenueDrillDown";
 import { RevenueDrillDownTable } from "@/components/RevenueDrillDownTable";
@@ -52,7 +52,7 @@ export default function Overview() {
   const {
     data: metrics,
     isLoading: metricsLoading
-  } = useFinancialMetrics(filters.dateRange);
+  } = useFinancialMetrics(Number(authUser?.id), filters.dateRange);
   const {
     data: revenueSources,
     isLoading: revenueLoading
@@ -61,10 +61,6 @@ export default function Overview() {
     data: expenseCategories,
     isLoading: expensesLoading
   } = useExpenseCategories();
-  const {
-    data: kpis,
-    isLoading: kpisLoading
-  } = useKPIs();
   const {
     data: revenueProfitData,
     isLoading: revenueProfitLoading
@@ -83,11 +79,6 @@ export default function Overview() {
   // Helper function to get metric by type
   const getMetric = (type: string) => {
     return metrics?.find(m => m.metric_type === type);
-  };
-
-  // Helper function to get KPI by name
-  const getKPI = (name: string) => {
-    return kpis?.find(k => k.kpi_name === name);
   };
 
   // Handle chart point click for drill-down
@@ -115,7 +106,9 @@ export default function Overview() {
   const closeDrillDown = () => {
     setDrillDownParams(null);
   };
-  if (metricsLoading || revenueLoading || expensesLoading || kpisLoading || revenueProfitLoading || comparisonLoading) {
+  //TODO HACER MAS DINAMICO ESTE LOAD 
+
+  if (metricsLoading || revenueLoading || expensesLoading /*|| revenueProfitLoading || comparisonLoading*/) {
     return <div className="flex items-center justify-center min-h-[400px]">
       <div className="text-center">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -143,9 +136,7 @@ export default function Overview() {
   const expenses = getMetric('expenses');
   const profit = getMetric('profit');
   const cashFlow = getMetric('cash_flow');
-  const activeCustomers = getKPI('Active Customers');
-  const totalOrders = getKPI('Total Orders');
-  const conversionRate = getKPI('Conversion Rate');
+
   return <div className="flex flex-col lg:flex-row gap-4 md:gap-6">
     {/* Main Content */}
     <div className="flex-1 space-y-4 md:space-y-6">

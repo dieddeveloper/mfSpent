@@ -8,6 +8,13 @@ export interface SpentResponse<T = unknown> {
   success: boolean;
 }
 
+export interface GetFinancialSummaryResponse {
+  totalIncomes: number;
+  totalExpenses: number;
+  totalProfit: number;
+  totalCashFlow: number;
+}
+
 export interface AuthUser {
   id?: string;
   userId?: number;

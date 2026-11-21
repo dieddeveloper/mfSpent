@@ -50,6 +50,11 @@ const formatCurrencyAmount = (value: string) => {
   }).format(amount);
 };
 
+//TODO TEMPORALIDAD DE LOS PAGOS, SI ES UN PAGO UNICO O VARIOS PAGOS, SI ES VARIOS PAGOS, CUAL ES EL NUMERO DE PAGOS, SI ES VARIOS PAGOS, CUAL ES LA FECHA DE INICIO Y CUAL ES LA FECHA DE FIN
+//TODO VERIFICAR CAMPO LINK NO ESTA GUARDANDO
+//TODO BOTON PARA HABILITAR NOTIFICACIONES Y VERIFICAR PAGOS CONSTANTES
+
+
 const SpentPopup = ({ open, onClose, title, size, noveltyType, userId }: SpentPopupProps) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [top, setTop] = useState(0);
